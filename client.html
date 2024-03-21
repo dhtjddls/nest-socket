@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chat Application</title>
+    <script src="https://cdn.socket.io/4.2.0/socket.io.min.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const socket = io('http://localhost:3000', {
+          extraHeaders: {
+            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsInVzZXJuYW1lIjoiZGh0amRkbHMiLCJpc0FkbWluIjp0cnVlLCJpYXQiOjE3MTEwMTEwODQsImV4cCI6MTcxMTAxODI4NH0.kaqy2Hr2NU1I8bKxGfbMJxCbJW0d42F5XS_hkh6mBnE`,
+          },
+        });
+
+        socket.on('connect', function () {
+          console.log('Connected to the server');
+        });
+
+        socket.on('room_created', function (data) {
+          console.log(`Room created: ${data.roomId}`);
+        });
+
+        socket.on('invited', function (data) {
+          console.log(`Invited to room: ${data.roomId}`);
+        });
+
+        socket.on('new_message', function (data) {
+          console.log(`New message from ${data.sender}: ${data.message}`);
+        });
+
+        // 관리자 기능: 방 생성
+        document
+          .getElementById('createRoomButton')
+          .addEventListener('click', function () {
+            const roomId = document.getElementById('roomIdInput').value;
+            console.log(roomId);
+            socket.emit('create_room', { roomId });
+          });
+
+        // 관리자 기능: 사용자 초대
+        document
+          .getElementById('inviteUserButton')
+          .addEventListener('click', function () {
+            const roomId = document.getElementById('roomIdInput').value;
+            const userId = document.getElementById('userIdInput').value;
+            socket.emit('invite_user', { roomId, userId, isAdmin: true });
+          });
+
+        // 메시지 전송
+        document
+          .getElementById('sendMessageButton')
+          .addEventListener('click', function () {
+            const roomId = document.getElementById('roomIdInput').value;
+            const message = document.getElementById('messageInput').value;
+            socket.emit('send_message', { roomId, message, sender: socket.id });
+          });
+      });
+    </script>
+  </head>
+  <body>
+    <input id="roomIdInput" type="text" placeholder="Room ID" /><br />
+    <input id="userIdInput" type="text" placeholder="User ID to invite" /><br />
+    <button id="createRoomButton">Create Room</button>
+    <button id="inviteUserButton">Invite User</button><br />
+    <input id="messageInput" type="text" placeholder="Message" /><br />
+    <button id="sendMessageButton">Send Message</button>
+  </body>
+</html>
